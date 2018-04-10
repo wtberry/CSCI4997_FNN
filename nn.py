@@ -1,5 +1,7 @@
 '''
 HW3, implement fully connected 3 layaers neural networks
+
+Modify the PATH var before running!!
 '''
 ## Libraries
 import numpy as np
@@ -10,7 +12,8 @@ from loader import MNIST
 
 ##### 1. Import data #####
 print('Loading datasets...')
-mndata = MNIST('/Users/Sean Harding/source/repos/ZhuFNN/MNIST_data')
+PATH = '/home/wataru/Uni/4997/programming_hw/ZhuFnn/MNIST_data'
+mndata = MNIST(PATH)
 X, y = mndata.load_training()
 X_test, y_test = mndata.load_testing()
 
@@ -22,10 +25,10 @@ X_test, y_test = np.array(X_test), np.array(y_test).reshape(-1, 1)
 m_train = X.shape[0]
 m_test= X_test.shape[0]
 input_size = X.shape[1] # number of features on the input + 1 (bias
-hidden_size = 50
+hidden_size = 300
 output_size = np.unique(y).shape[0] # extract unique elements and count them as numbers of output labels
 lr = 3e-2 # learning rate
-epochs = 50000 # num of epoch
+epochs = 10000 # num of epoch
 
 ### Make one hot matrix for y (labels)
 def one_hot(y):
@@ -72,16 +75,17 @@ def prediction(X, w1, w2):
     # unroll the weights back to two matrix
     '''
     # getting hidden layer nodes values
+    m = X.shape[0]
     z1 = X.dot(w1.T) # shape (60000, 50)
     a1 = sigmoid(z1)
     
     # adding hidden layer bias, and getting output
-    a1 = np.c_[np.ones((m_train, 1)), a1] # Shape of (60000, 51)
+    a1 = np.c_[np.ones((m, 1)), a1] # Shape of (60000, 51)
     z2 = a1.dot(w2.T) # shape of (60000, 10)
     pred = sigmoid(z2)
     
     ## converting one hot back to vector
-    pred = pred.argmax(axis=1).reshape(m_train, 1)
+    pred = pred.argmax(axis=1).reshape(m, 1)
     return pred
 
 def cost(nn_params, input_size, hidden_size, output_size, X, y_one_hot, lam):
@@ -177,10 +181,15 @@ def grad_descent(X, y_label, nn_params, lr, num_iters, sizes, y):
             pred = prediction(X, w1, w2)
             acc = accuracy(pred, y)
             print('accuracy: ', acc)
-	pred = prediction(X, w1, w2)
+    pred = prediction(X, w1, w2)
     acc = accuracy(pred, y)
     print('Training accuracy: ', acc)
     return [w1, w2, j_hist]
+
+##### Training #######
+# printing out models params
+print(hidden_size, 'hidden_nodes')
+print('Learning rate: ' ,lr, 'epochs: ', epochs)
 
 result = grad_descent(X, y_label, nn_params, lr, epochs, sizes, y)
 j_hist = np.array(result[2])
@@ -195,5 +204,7 @@ def graph_cost(j_hist):
     plt.grid(True)
     plt.show()
 
-acc = accuracy(X_test, w1, w2)
+pred_test = prediction(X_test, w1, w2)
+test_acc = accuracy(pred_test, y_test)
+print('Testing set accuracy: ', test_acc)
 graph_cost(j_hist)
