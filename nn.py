@@ -18,6 +18,7 @@ X_test, y_test = mndata.load_testing()
 X, y = np.array(X), np.array(y).reshape(-1, 1) # X(60,0000 x 784) y(60,0000x1)
 X_test, y_test = np.array(X_test), np.array(y_test).reshape(-1, 1)
 
+
 ##### 2. Set up parameters #####
 m_train = X.shape[0]
 m_test= X_test.shape[0]
@@ -27,11 +28,25 @@ output_size = np.unique(y).shape[0] # extract unique elements and count them as 
 lr = 3e-2 # learning rate
 epochs = 5000 # num of epoch
 
+### Make one hot matrix for y (labels)
+def one_hot(y):
+    '''
+    Return one hot matrix for label, given y matrix
+    '''
+    y_one_hot = np.zeros((y.shape[0], output_size))
+
+    for i in range(y.size):
+        y_one_hot[i, y[i]] = 1
+    return y_one_hot
 
 ##### 3. Initialize #####
 #Adding bias term to Xs
 X = np.c_[np.ones((m_train, 1)), X]
 X_test = np.c_[np.ones((m_test, 1)), X_test]
+
+## One hotting the labels
+y_label = one_hot(y)
+y_test_Label = one_hot(y_test)
 '''
 For random samples from :math:`N(\mu, \sigma^2)`, use:
 
@@ -41,7 +56,9 @@ For random samples from :math:`N(\mu, \sigma^2)`, use:
 sigma, mu = 0.25, 0
 w1 = sigma * np.random.randn(input_size + 1, hidden_size) + mu
 w2 = sigma * np.random.randn(hidden_size + 1, output_size) + mu
+
 ## Maybe unroll weights into one vector to feed into the feedforward
+nn_params = np.concatenate((w1.reshape(w1.size, order='F'), w2.reshape(w2.size, order='F')))
 
 ##### 4. Feedforward. #####
 
@@ -65,8 +82,51 @@ def feedforward(X, w1, w2):
     pred = sigmoid(z2)
     return pred
 
-def cost(pred, y):
-    J = 1/(2*m) * (pred - y)**2
+def cost(nn_params, input_size, hidden_size, output_size, X, y_one_hot, lam):
+
+    w1 = np.reshape(nn_params[:hidden_size * (input_size + 1)], \
+            (hidden_size, input_size + 1), order='F')
+    w2 = np.reshape(nn_params[hidden_size * (input_size + 1):], \
+             (output_size, hidden_size + 1), order='F')
+
+    m = X.shape[0] # 60,000
+    J = 0 # initializing cost
+
+    # Initializing theta grad
+    w1_grad = np.zeros((w1.shape))
+    w2_grad = np.zeros((w2.shape))
+
+    ## Feedforwarding, input to hidden
+    z2 = X.dot(w1.T)
+    a2 = sigmoid(z2)
+    a2 = np.c_[np.ones((m, 1)), a2]
+
+    ## Hidden to output
+    z3 = a2.dot(w2.T)
+    a3 = sigmoid(z3)
+
+    J = 1/(2*m) * (a3- y_one_hot)**2
+
+    ## Regularization??
+
+    ## Backprop
+    ## Initializing param
+    D2 = np.zeros((output_size, hidden_size+1))
+    D1 = np.zeros((hidden_size+1, input_size+1))
+    print('D1_shape', D1.shape)
+
+    d3 = a3 - y_one_hot
+    d2 = d3.dot(w2)*a2*(1-a2)
+
+    D2 += d3.T.dot(a2)
+    D1 += d2.T.dot(X)
+
+    w1_grad = (1/m)*D1
+    w2_grad = (1/m)*D2
+
+    grad = np.concatenate((w1_grad.reshape(w1_grad.size, order='F'), w2_grad.reshape(w2_grad.size, order='F')))
+
+    return [J, grad]
 
 ##### 5. Backpropagation #####
 
