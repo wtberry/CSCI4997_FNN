@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 from scipy import special # for logistic function
 import matplotlib.pyplot as plt
-from mnist import MNIST
+from loader import MNIST
 # import scipy optimizer too??
 
 ##### 1. Import data #####
 print('Loading datasets...')
-mndata = MNIST('/home/wataru/Uni/4997/programming_hw/FNN/MNIST_data')
+mndata = MNIST('/Users/Sean Harding/source/repos/ZhuFNN/MNIST_data')
 X, y = mndata.load_training()
 X_test, y_test = mndata.load_testing()
 
@@ -26,7 +26,7 @@ input_size = X.shape[1] # number of features on the input + 1 (bias
 hidden_size = 50
 output_size = np.unique(y).shape[0] # extract unique elements and count them as numbers of output labels
 lr = 3e-2 # learning rate
-epochs = 1000 # num of epoch
+epochs = 50000 # num of epoch
 
 ### Make one hot matrix for y (labels)
 def one_hot(y):
@@ -178,7 +178,9 @@ def grad_descent(X, y_label, nn_params, lr, num_iters, sizes, y):
             pred = prediction(X, w1, w2)
             acc = accuracy(pred, y)
             print('accuracy: ', acc)
-
+	pred = prediction(X, w1, w2)
+    acc = accuracy(pred, y)
+    print('accuracy: ', acc)
     return [w1, w2, j_hist]
 
 result = grad_descent(X, y_label, nn_params, lr, epochs, sizes, y)
