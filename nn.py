@@ -179,7 +179,7 @@ def grad_descent(X, y_label, nn_params, lr, num_iters, sizes, y):
             print('accuracy: ', acc)
 	pred = prediction(X, w1, w2)
     acc = accuracy(pred, y)
-    print('accuracy: ', acc)
+    print('Training accuracy: ', acc)
     return [w1, w2, j_hist]
 
 result = grad_descent(X, y_label, nn_params, lr, epochs, sizes, y)
@@ -195,5 +195,5 @@ def graph_cost(j_hist):
     plt.grid(True)
     plt.show()
 
+acc = accuracy(X_test, w1, w2)
 graph_cost(j_hist)
-acc = accuracy()
