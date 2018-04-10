@@ -26,7 +26,7 @@ input_size = X.shape[1] # number of features on the input + 1 (bias
 hidden_size = 50
 output_size = np.unique(y).shape[0] # extract unique elements and count them as numbers of output labels
 lr = 3e-2 # learning rate
-epochs = 5000 # num of epoch
+epochs = 1000 # num of epoch
 
 ### Make one hot matrix for y (labels)
 def one_hot(y):
@@ -54,8 +54,8 @@ For random samples from :math:`N(\mu, \sigma^2)`, use:
 '''
 # Here, we'll initialize weights using normal distribution
 sigma, mu = 0.25, 0
-w1 = sigma * np.random.randn(input_size + 1, hidden_size) + mu
-w2 = sigma * np.random.randn(hidden_size + 1, output_size) + mu
+w1 = sigma * np.random.randn(hidden_size, input_size+1) + mu
+w2 = sigma * np.random.randn(output_size, hidden_size + 1) + mu
 
 ## Maybe unroll weights into one vector to feed into the feedforward
 nn_params = np.concatenate((w1.reshape(w1.size, order='F'), w2.reshape(w2.size, order='F')))
@@ -66,20 +66,23 @@ def sigmoid(X):
     # matrix supported elementwise sigmoid function implemented by scipy.special
     return special.expit(X)
 
-def feedforward(X, w1, w2):
+def prediction(X, w1, w2):
 
     '''
     feedforward and return output/prediction, given X, y, and 2 weights
     # unroll the weights back to two matrix
     '''
     # getting hidden layer nodes values
-    z1 = X.dot(w1) # shape (60000, 50)
+    z1 = X.dot(w1.T) # shape (60000, 50)
     a1 = sigmoid(z1)
     
     # adding hidden layer bias, and getting output
     a1 = np.c_[np.ones((m_train, 1)), a1] # Shape of (60000, 51)
-    z2 = a1.dot(w2) # shape of (60000, 10)
+    z2 = a1.dot(w2.T) # shape of (60000, 10)
     pred = sigmoid(z2)
+    
+    ## converting one hot back to vector
+    pred = pred.argmax(axis=1).reshape(m_train, 1)
     return pred
 
 def cost(nn_params, input_size, hidden_size, output_size, X, y_one_hot, lam):
@@ -105,21 +108,20 @@ def cost(nn_params, input_size, hidden_size, output_size, X, y_one_hot, lam):
     z3 = a2.dot(w2.T)
     a3 = sigmoid(z3)
 
-    J = 1/(2*m) * (a3- y_one_hot)**2
+    J = np.sum(1/(2*m) * (a3- y_one_hot)**2)
 
     ## Regularization??
 
     ## Backprop
     ## Initializing param
     D2 = np.zeros((output_size, hidden_size+1))
-    D1 = np.zeros((hidden_size+1, input_size+1))
-    print('D1_shape', D1.shape)
+    D1 = np.zeros((hidden_size, input_size+1))
 
     d3 = a3 - y_one_hot
     d2 = d3.dot(w2)*a2*(1-a2)
 
     D2 += d3.T.dot(a2)
-    D1 += d2.T.dot(X)
+    D1 += d2.T.dot(X)[1:, :] ## (50x785)
 
     w1_grad = (1/m)*D1
     w2_grad = (1/m)*D2
@@ -128,7 +130,66 @@ def cost(nn_params, input_size, hidden_size, output_size, X, y_one_hot, lam):
 
     return [J, grad]
 
-##### 5. Backpropagation #####
+##### Accuracy #####
+def accuracy(pred, y):
+    comp = pred == y
+    comp = comp.astype(float)
+    result = comp.mean()
+    return result * 100
 
-##### . #####
-##### . #####
+
+##### 5. Backpropagation is inside of the cost function #####
+
+##### 6. Gradient Descent #####
+sizes = {'input':input_size, 'hidden':hidden_size, 'output':output_size}
+
+def grad_descent(X, y_label, nn_params, lr, num_iters, sizes, y):
+
+    m = X.shape[0]
+    input_size, hidden_size, output_size = sizes['input'], sizes['hidden'], sizes['output']
+    j_hist = []
+    lam = 0
+
+
+    w1 = np.reshape(nn_params[:hidden_size * (input_size + 1)], \
+            (hidden_size, input_size + 1), order='F')
+    w2 = np.reshape(nn_params[hidden_size * (input_size + 1):], \
+             (output_size, hidden_size + 1), order='F')
+
+    for i in range(num_iters):
+
+        
+
+        J = cost(nn_params, input_size, hidden_size, output_size, X, y_label, lam)
+        j_hist.append(J[0]) # storing cost function values 
+        J, w_grad = J[0], J[1]
+        w1_grad = np.reshape(w_grad[:hidden_size * (input_size + 1)], \
+                (hidden_size, input_size + 1), order='F')
+        w2_grad = np.reshape(w_grad[hidden_size * (input_size + 1):], \
+                 (output_size, hidden_size + 1), order='F')
+
+        w1 -= lr*w1_grad
+        w2 -= lr*w2_grad
+
+        if i%10 == 0:
+            print('# of epoch: ', i)
+            print('cost J: ', J)
+        if i%100 == 0:
+            pred = prediction(X, w1, w2)
+            acc = accuracy(pred, y)
+            print('accuracy: ', acc)
+
+    return [w1, w2, j_hist]
+
+result = grad_descent(X, y_label, nn_params, lr, epochs, sizes, y)
+j_hist = np.array(result[2])
+w1 = result[0]
+w2 = result[1]
+##### 7. graphing #####
+def graph_cost(j_hist):
+    plt.figure()
+    plt.plot(np.arange(1, j_hist.size+1), j_hist)
+    plt.xlabel('# of iterations')
+    plt.ylabel('cost J')
+    plt.grid(True)
+    plt.show()
