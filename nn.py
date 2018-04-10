@@ -3,7 +3,6 @@ HW3, implement fully connected 3 layaers neural networks
 '''
 ## Libraries
 import numpy as np
-import pandas as pd
 from scipy import special # for logistic function
 import matplotlib.pyplot as plt
 from mnist import MNIST
@@ -193,3 +192,6 @@ def graph_cost(j_hist):
     plt.ylabel('cost J')
     plt.grid(True)
     plt.show()
+
+graph_cost(j_hist)
+acc = accuracy()
