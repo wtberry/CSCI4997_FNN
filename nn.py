@@ -36,6 +36,7 @@ lr = 3e-2 # learning rate
 epochs = 50000 # num of epoch
 
 ### Make one hot matrix for y (labels)
+##@vectorize(['XXX, target='cuda')  <attempt here
 def one_hot(y):
     '''
     Return one hot matrix for label, given y matrix
@@ -68,11 +69,11 @@ w2 = sigma * np.random.randn(output_size, hidden_size + 1) + mu
 nn_params = np.concatenate((w1.reshape(w1.size, order='F'), w2.reshape(w2.size, order='F')))
 
 ##### 4. Feedforward. #####
-
+##@vectorize(['XXX, target='cuda')  <attempt here
 def sigmoid(X):
     # matrix supported elementwise sigmoid function implemented by scipy.special
     return special.expit(X)
-
+##@vectorize(['XXX, target='cuda')  <attempt here
 def prediction(X, w1, w2):
 
     '''
@@ -92,7 +93,7 @@ def prediction(X, w1, w2):
     ## converting one hot back to vector
     pred = pred.argmax(axis=1).reshape(m, 1)
     return pred
-
+##@vectorize(['XXX, target='cuda')  <attempt here
 def cost(nn_params, input_size, hidden_size, output_size, X, y_one_hot, lam):
 
     w1 = np.reshape(nn_params[:hidden_size * (input_size + 1)], \
@@ -139,6 +140,7 @@ def cost(nn_params, input_size, hidden_size, output_size, X, y_one_hot, lam):
     return [J, grad]
 
 ##### Accuracy #####
+##@vectorize(['XXX, target='cuda')  <attempt here
 def accuracy(pred, y):
     comp = pred == y
     comp = comp.astype(float)
@@ -150,7 +152,7 @@ def accuracy(pred, y):
 
 ##### 6. Gradient Descent #####
 sizes = {'input':input_size, 'hidden':hidden_size, 'output':output_size}
-
+##@vectorize(['XXX, target='cuda')  <attempt here
 def grad_descent(X, y_label, nn_params, lr, num_iters, sizes, y):
 
     m = X.shape[0]
@@ -201,6 +203,7 @@ j_hist = np.array(result[2])
 w1 = result[0]
 w2 = result[1]
 ##### 7. graphing #####
+##@vectorize(['XXX, target='cuda')  <attempt here
 def graph_cost(j_hist):
     plt.figure()
     plt.plot(np.arange(1, j_hist.size+1), j_hist)
