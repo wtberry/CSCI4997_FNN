@@ -13,7 +13,7 @@ from loader import MNIST
 ##### 1. Import data #####
 print('Loading datasets...')
 WPATH = '/home/wataru/Uni/4997/programming_hw/ZhuFnn/MNIST_data'
-SPATH = '/User/Sean Harding/Documents/GitHub/ZhuFNN/MNIST_data'
+SPATH = '/Users/Sean Harding/Documents/GitHub/ZhuFNN/MNIST_data'
 PATH = SPATH
 mndata = MNIST(PATH)
 X, y = mndata.load_training()
