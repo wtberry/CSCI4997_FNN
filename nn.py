@@ -8,6 +8,7 @@ import numpy as np
 from scipy import special # for logistic function
 import matplotlib.pyplot as plt
 from loader import MNIST
+from sklearn import preprocessing
 # import scipy optimizer too??
 
 ##### 1. Import data #####
@@ -25,10 +26,10 @@ X_test, y_test = np.array(X_test), np.array(y_test).reshape(-1, 1)
 m_train = X.shape[0]
 m_test= X_test.shape[0]
 input_size = X.shape[1] # number of features on the input + 1 (bias
-hidden_size = 300
+hidden_size = 50
 output_size = np.unique(y).shape[0] # extract unique elements and count them as numbers of output labels
 lr = 3e-2 # learning rate
-epochs = 10000 # num of epoch
+epochs = 5000 # num of epoch
 
 ### Make one hot matrix for y (labels)
 def one_hot(y):
@@ -40,6 +41,11 @@ def one_hot(y):
     for i in range(y.size):
         y_one_hot[i, y[i]] = 1
     return y_one_hot
+
+##### Feature Normalization #####
+min_max_scalar = preprocessing.MinMaxScaler()
+X = min_max_scalar.fit_transform(X)
+X_test = min_max_scalar.fit_transform(X_test)
 
 ##### 3. Initialize #####
 #Adding bias term to Xs
@@ -67,6 +73,9 @@ nn_params = np.concatenate((w1.reshape(w1.size, order='F'), w2.reshape(w2.size, 
 def sigmoid(X):
     # matrix supported elementwise sigmoid function implemented by scipy.special
     return special.expit(X)
+
+def ReLu(X):
+    return X*(X>0)
 
 def prediction(X, w1, w2):
 
