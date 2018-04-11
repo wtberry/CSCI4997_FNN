@@ -12,7 +12,9 @@ from loader import MNIST
 
 ##### 1. Import data #####
 print('Loading datasets...')
-PATH = '/home/wataru/Uni/4997/programming_hw/ZhuFnn/MNIST_data'
+WPATH = '/home/wataru/Uni/4997/programming_hw/ZhuFnn/MNIST_data'
+SPATH = '/User/Sean Harding/Documents/GitHub/ZhuFNN/MNIST_data'
+PATH = SPATH
 mndata = MNIST(PATH)
 X, y = mndata.load_training()
 X_test, y_test = mndata.load_testing()
@@ -25,10 +27,10 @@ X_test, y_test = np.array(X_test), np.array(y_test).reshape(-1, 1)
 m_train = X.shape[0]
 m_test= X_test.shape[0]
 input_size = X.shape[1] # number of features on the input + 1 (bias
-hidden_size = 300
+hidden_size = 500
 output_size = np.unique(y).shape[0] # extract unique elements and count them as numbers of output labels
 lr = 3e-2 # learning rate
-epochs = 10000 # num of epoch
+epochs = 30000 # num of epoch
 
 ### Make one hot matrix for y (labels)
 def one_hot(y):
