@@ -3,8 +3,11 @@ HW3, implement fully connected 3 layaers neural networks
 
 Modify the PATH var before running!!
 '''
+###VECTORIZE METHODS!: @vectorize(['float32(float32, float32)'], target='cuda'), where the things are return(param a, param b) and so on
+
 ## Libraries
 import numpy as np
+from numpy import vectorize
 from scipy import special # for logistic function
 import matplotlib.pyplot as plt
 from loader import MNIST
