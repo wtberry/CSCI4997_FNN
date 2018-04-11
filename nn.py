@@ -7,12 +7,18 @@ Modify the PATH var before running!!
 import numpy as np
 from scipy import special # for logistic function
 import matplotlib.pyplot as plt
+import multiprocessing
+import cython
 from loader import MNIST
 # import scipy optimizer too??
 
 ##### 1. Import data #####
 print('Loading datasets...')
-PATH = '/home/wataru/Uni/4997/programming_hw/ZhuFnn/MNIST_data'
+WPATH = '/home/wataru/Uni/4997/programming_hw/ZhuFnn/MNIST_data'
+SPATH = 'C:\Users\Sean Harding\Documents\GitHub\ZhuFnn\MNIST_data'
+PATH = SPATH
+proc = !nproc
+pool = multiprocessing.Pool(proc)
 mndata = MNIST(PATH)
 X, y = mndata.load_training()
 X_test, y_test = mndata.load_testing()
@@ -25,12 +31,13 @@ X_test, y_test = np.array(X_test), np.array(y_test).reshape(-1, 1)
 m_train = X.shape[0]
 m_test= X_test.shape[0]
 input_size = X.shape[1] # number of features on the input + 1 (bias
-hidden_size = 300
+hidden_size = 500
 output_size = np.unique(y).shape[0] # extract unique elements and count them as numbers of output labels
 lr = 3e-2 # learning rate
-epochs = 10000 # num of epoch
+epochs = 30000 # num of epoch
 
 ### Make one hot matrix for y (labels)
+%%cython
 def one_hot(y):
     '''
     Return one hot matrix for label, given y matrix
@@ -63,11 +70,12 @@ w2 = sigma * np.random.randn(output_size, hidden_size + 1) + mu
 nn_params = np.concatenate((w1.reshape(w1.size, order='F'), w2.reshape(w2.size, order='F')))
 
 ##### 4. Feedforward. #####
-
+%%cython
 def sigmoid(X):
     # matrix supported elementwise sigmoid function implemented by scipy.special
     return special.expit(X)
 
+%%cython
 def prediction(X, w1, w2):
 
     '''
@@ -88,6 +96,7 @@ def prediction(X, w1, w2):
     pred = pred.argmax(axis=1).reshape(m, 1)
     return pred
 
+%%cython
 def cost(nn_params, input_size, hidden_size, output_size, X, y_one_hot, lam):
 
     w1 = np.reshape(nn_params[:hidden_size * (input_size + 1)], \
@@ -134,6 +143,7 @@ def cost(nn_params, input_size, hidden_size, output_size, X, y_one_hot, lam):
     return [J, grad]
 
 ##### Accuracy #####
+%%cython
 def accuracy(pred, y):
     comp = pred == y
     comp = comp.astype(float)
@@ -146,6 +156,7 @@ def accuracy(pred, y):
 ##### 6. Gradient Descent #####
 sizes = {'input':input_size, 'hidden':hidden_size, 'output':output_size}
 
+%%cython
 def grad_descent(X, y_label, nn_params, lr, num_iters, sizes, y):
 
     m = X.shape[0]
@@ -196,6 +207,7 @@ j_hist = np.array(result[2])
 w1 = result[0]
 w2 = result[1]
 ##### 7. graphing #####
+%%cython
 def graph_cost(j_hist):
     plt.figure()
     plt.plot(np.arange(1, j_hist.size+1), j_hist)
